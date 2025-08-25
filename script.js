@@ -97,6 +97,7 @@ class RewardPointsTracker {
 
         // Settings button
         document.getElementById('settingsBtn').addEventListener('click', () => {
+            console.log('Settings button clicked');
             this.showSettingsModal();
         });
 
@@ -1027,8 +1028,10 @@ class RewardPointsTracker {
 
     // Show settings modal
     showSettingsModal() {
+        console.log('Showing settings modal');
         this.loadSettings();
         const modal = document.getElementById('settingsModal');
+        console.log('Modal element:', modal);
         modal.style.display = 'block';
         modal.style.opacity = '0';
         

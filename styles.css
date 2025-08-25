@@ -21,7 +21,6 @@ body {
 
 /* Header */
 .header {
-    text-align: center;
     margin-bottom: 30px;
     background: linear-gradient(135deg, #ffb347 0%, #ffcc5c 100%);
     border-radius: 25px;
@@ -30,6 +29,39 @@ body {
     border: 3px solid #e67e22;
     position: relative;
     overflow: hidden;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    text-align: center;
+    flex: 1;
+}
+
+.settings-btn-header {
+    background: linear-gradient(135deg, #87ceeb 0%, #98d8e8 100%);
+    color: #2c3e50;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.3);
+    border: 3px solid #4682b4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn-header:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 6px 20px rgba(135, 206, 235, 0.4);
 }
 
 .header h1 {
@@ -511,28 +543,8 @@ body {
 /* Bottom Buttons */
 .bottom-buttons {
     display: flex;
-    gap: 20px;
     justify-content: center;
     margin-top: 30px;
-}
-
-.settings-btn {
-    background: linear-gradient(135deg, #87ceeb 0%, #98d8e8 100%);
-    color: #2c3e50;
-    border: none;
-    border-radius: 15px;
-    padding: 15px 30px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(135, 206, 235, 0.3);
-    border: 3px solid #4682b4;
-}
-
-.settings-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(135, 206, 235, 0.4);
 }
 
 /* Reset Button */
