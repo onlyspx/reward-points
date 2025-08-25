@@ -98,10 +98,17 @@ class RewardPointsTracker {
         });
 
         // Settings button
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            console.log('Settings button clicked');
-            this.showSettingsModal();
-        });
+        const settingsBtn = document.getElementById('settingsBtn');
+        console.log('Settings button found:', settingsBtn);
+        
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', () => {
+                console.log('Settings button clicked');
+                this.showSettingsModal();
+            });
+        } else {
+            console.error('Settings button not found!');
+        }
 
         // Reset button
         document.getElementById('resetBtn').addEventListener('click', () => {
