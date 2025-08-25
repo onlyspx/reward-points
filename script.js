@@ -114,14 +114,27 @@ class RewardPointsTracker {
     addPoints(points, activity) {
         const today = this.getTodayString();
         
-        // Update total points
-        this.data.totalPoints += points;
-        
-        // Update daily points
+        // Check daily point limit (50 points max per day)
         if (!this.data.dailyPoints[today]) {
             this.data.dailyPoints[today] = 0;
         }
-        this.data.dailyPoints[today] += points;
+        
+        const currentDailyPoints = this.data.dailyPoints[today];
+        const remainingDailyPoints = 50 - currentDailyPoints;
+        
+        if (remainingDailyPoints <= 0) {
+            this.showDailyLimitMessage();
+            return;
+        }
+        
+        // Adjust points if it would exceed daily limit
+        const actualPoints = Math.min(points, remainingDailyPoints);
+        
+        // Update total points
+        this.data.totalPoints += actualPoints;
+        
+        // Update daily points
+        this.data.dailyPoints[today] += actualPoints;
         
         // Update activity counts for badges
         if (!this.data.activityCounts[activity]) {
@@ -132,7 +145,7 @@ class RewardPointsTracker {
         // Add to activities list
         this.data.activities.unshift({
             activity: activity,
-            points: points,
+            points: actualPoints,
             timestamp: new Date().toISOString(),
             date: today
         });
@@ -148,7 +161,12 @@ class RewardPointsTracker {
         this.updateProgressBars();
         this.updateChart();
         this.updateBadges();
-        this.showPointsAddedAnimation(points);
+        this.showPointsAddedAnimation(actualPoints);
+        
+        // Show message if points were adjusted
+        if (actualPoints < points) {
+            this.showPointsAdjustedMessage(points, actualPoints);
+        }
     }
 
     // Update display
@@ -169,7 +187,7 @@ class RewardPointsTracker {
         const today = this.getTodayString();
         const todayPoints = this.data.dailyPoints[today] || 0;
         
-        // Calculate progress percentages (example: 100 points = 100%)
+        // Calculate progress percentages (50 points = 100% for daily, 100 points = 100% for total)
         const totalProgress = Math.min((this.data.totalPoints / 100) * 100, 100);
         const todayProgress = Math.min((todayPoints / 50) * 100, 100);
         
@@ -717,6 +735,62 @@ class RewardPointsTracker {
         setTimeout(() => {
             modal.style.display = 'none';
         }, 300);
+    }
+
+    // Show daily limit message
+    showDailyLimitMessage() {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+            border: 3px solid #c0392b;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = '🎯 Daily limit reached! (50 points max)';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
+
+    // Show points adjusted message
+    showPointsAdjustedMessage(requested, actual) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
+            border: 3px solid #e67e22;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `📊 Points adjusted: ${actual} instead of ${requested} (daily limit)`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
     }
 }
 
