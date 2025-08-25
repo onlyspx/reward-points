@@ -1213,22 +1213,30 @@ class RewardPointsTracker {
             const activityId = btn.dataset.activity;
             const mappedId = this.getActivityIdFromName(activityName);
             
-            console.log('Checking button:', buttonText);
+            console.log('--- Button Check ---');
+            console.log('Activity to undo:', activityName);
+            console.log('Button text:', buttonText);
             console.log('Button activity ID:', activityId);
             console.log('Mapped ID from name:', mappedId);
+            console.log('Exact text match?', buttonText === activityName);
+            console.log('ID match?', activityId === mappedId);
             
             // Match by exact text or by activity ID
             if (buttonText === activityName || activityId === mappedId) {
-                console.log('Found matching button!');
+                console.log('✅ Found matching button!');
                 console.log('Activity ID to remove:', activityId);
                 console.log('Was it completed?', todayActivities[activityId]);
                 
                 if (todayActivities[activityId]) {
                     delete todayActivities[activityId];
-                    console.log('Removed from today activities');
+                    console.log('✅ Removed from today activities');
                     foundMatch = true;
+                } else {
+                    console.log('❌ Activity was not marked as completed');
                 }
                 break;
+            } else {
+                console.log('❌ No match for this button');
             }
         }
         
