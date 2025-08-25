@@ -35,6 +35,7 @@ class RewardPointsTracker {
 
     // Initialize the app
     init() {
+        console.log('Initializing app...');
         this.checkMidnightReset();
         this.setupEventListeners();
         this.loadSettings();
@@ -44,6 +45,7 @@ class RewardPointsTracker {
         this.initBadges();
         this.updateBadges();
         this.updateActivityButtons();
+        console.log('App initialized successfully');
     }
 
     // Setup event listeners
@@ -1032,6 +1034,12 @@ class RewardPointsTracker {
         this.loadSettings();
         const modal = document.getElementById('settingsModal');
         console.log('Modal element:', modal);
+        
+        if (!modal) {
+            console.error('Settings modal not found!');
+            return;
+        }
+        
         modal.style.display = 'block';
         modal.style.opacity = '0';
         
