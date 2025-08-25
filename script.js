@@ -902,9 +902,15 @@ class RewardPointsTracker {
         const today = this.getTodayString();
         const todayActivities = this.data.dailyActivities[today] || {};
         
+        console.log('=== UPDATE ACTIVITY BUTTONS DEBUG ===');
+        console.log('Today:', today);
+        console.log('Today activities:', todayActivities);
+        
         document.querySelectorAll('.activity-btn').forEach(btn => {
             const activity = btn.dataset.activity;
             const isCompleted = todayActivities[activity];
+            
+            console.log('Button:', btn.textContent.trim(), 'Activity ID:', activity, 'Completed:', isCompleted);
             
             if (isCompleted) {
                 btn.style.opacity = '0.8';
@@ -927,6 +933,7 @@ class RewardPointsTracker {
                     btn.style.position = 'relative';
                     btn.appendChild(checkmark);
                 }
+                console.log('  -> Marked as completed');
             } else {
                 btn.style.opacity = '1';
                 btn.style.filter = 'grayscale(0%)';
@@ -937,9 +944,14 @@ class RewardPointsTracker {
                 const existingCheckmark = btn.querySelector('.checkmark');
                 if (existingCheckmark) {
                     btn.removeChild(existingCheckmark);
+                    console.log('  -> Removed checkmark');
+                } else {
+                    console.log('  -> Already unchecked');
                 }
             }
         });
+        
+        console.log('=== END UPDATE ACTIVITY BUTTONS DEBUG ===');
     }
 
     // Show activity already completed message
@@ -1149,13 +1161,20 @@ class RewardPointsTracker {
 
     // Undo activity
     undoActivity(index) {
+        console.log('=== UNDO ACTIVITY DEBUG ===');
+        console.log('Undoing activity at index:', index);
+        
         if (index < 0 || index >= this.data.activities.length) {
+            console.log('Invalid index, returning');
             return;
         }
         
         const activity = this.data.activities[index];
         const points = activity.points;
         const activityName = activity.activity;
+        
+        console.log('Activity to undo:', activityName);
+        console.log('Points to remove:', points);
         
         // Remove points from total
         this.data.totalPoints -= points;
@@ -1182,20 +1201,42 @@ class RewardPointsTracker {
         
         // Unmark activity as completed for today (if it was a daily activity)
         const todayActivities = this.data.dailyActivities[today] || {};
+        console.log('Today activities before undo:', todayActivities);
         
         // Find the activity ID that matches this activity name
         const activityButtons = document.querySelectorAll('.activity-btn');
+        console.log('Found', activityButtons.length, 'activity buttons');
+        
+        let foundMatch = false;
         for (let btn of activityButtons) {
             const buttonText = btn.textContent.trim();
+            const activityId = btn.dataset.activity;
+            const mappedId = this.getActivityIdFromName(activityName);
+            
+            console.log('Checking button:', buttonText);
+            console.log('Button activity ID:', activityId);
+            console.log('Mapped ID from name:', mappedId);
+            
             // Match by exact text or by activity ID
-            if (buttonText === activityName || btn.dataset.activity === this.getActivityIdFromName(activityName)) {
-                const activityId = btn.dataset.activity;
+            if (buttonText === activityName || activityId === mappedId) {
+                console.log('Found matching button!');
+                console.log('Activity ID to remove:', activityId);
+                console.log('Was it completed?', todayActivities[activityId]);
+                
                 if (todayActivities[activityId]) {
                     delete todayActivities[activityId];
+                    console.log('Removed from today activities');
+                    foundMatch = true;
                 }
                 break;
             }
         }
+        
+        if (!foundMatch) {
+            console.log('No matching button found for:', activityName);
+        }
+        
+        console.log('Today activities after undo:', todayActivities);
         
         // Save and update display
         this.saveData();
@@ -1208,6 +1249,8 @@ class RewardPointsTracker {
         
         // Show undo confirmation
         this.showUndoConfirmation(activityName, points);
+        
+        console.log('=== END UNDO DEBUG ===');
     }
 
     // Show undo confirmation
