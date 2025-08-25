@@ -996,6 +996,34 @@ class RewardPointsTracker {
         return activityNames[activity] || activity;
     }
 
+    // Get activity ID from display name
+    getActivityIdFromName(activityName) {
+        const activityMap = {
+            'Brush Teeth (Morning)': 'brush-teeth-morning',
+            'Brush Teeth (Evening)': 'brush-teeth-evening',
+            'Breakfast': 'breakfast',
+            'Lunch': 'lunch',
+            'Dinner': 'dinner',
+            'Drink Milk': 'drink-milk',
+            'Use Restroom': 'use-restroom',
+            'Piano Practice': 'piano-practice',
+            'Reading (10 min)': 'reading-10min',
+            'Maths (10 min)': 'maths-10min',
+            'Spanish': 'spanish',
+            'Soccer': 'soccer',
+            'Baseball': 'baseball',
+            'Swimming': 'swimming',
+            'Clean Room': 'clean-room',
+            'Play Nicely with Sister': 'play-nicely-sister',
+            'Good Behavior': 'good-behavior'
+        };
+        
+        // Remove emojis and trim for matching
+        const cleanName = activityName.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').trim();
+        
+        return activityMap[cleanName] || null;
+    }
+
     // Show activity completion info
     showActivityCompletionInfo(activity) {
         const activityName = this.getActivityDisplayName(activity);
@@ -1158,7 +1186,9 @@ class RewardPointsTracker {
         // Find the activity ID that matches this activity name
         const activityButtons = document.querySelectorAll('.activity-btn');
         for (let btn of activityButtons) {
-            if (btn.textContent.trim() === activityName) {
+            const buttonText = btn.textContent.trim();
+            // Match by exact text or by activity ID
+            if (buttonText === activityName || btn.dataset.activity === this.getActivityIdFromName(activityName)) {
                 const activityId = btn.dataset.activity;
                 if (todayActivities[activityId]) {
                     delete todayActivities[activityId];
