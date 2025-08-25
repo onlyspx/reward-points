@@ -1210,19 +1210,22 @@ class RewardPointsTracker {
         let foundMatch = false;
         for (let btn of activityButtons) {
             const buttonText = btn.textContent.trim();
+            // Remove checkmark from button text for comparison
+            const cleanButtonText = buttonText.replace('✅', '').trim();
             const activityId = btn.dataset.activity;
             const mappedId = this.getActivityIdFromName(activityName);
             
             console.log('--- Button Check ---');
             console.log('Activity to undo:', activityName);
             console.log('Button text:', buttonText);
+            console.log('Clean button text:', cleanButtonText);
             console.log('Button activity ID:', activityId);
             console.log('Mapped ID from name:', mappedId);
-            console.log('Exact text match?', buttonText === activityName);
+            console.log('Exact text match?', cleanButtonText === activityName);
             console.log('ID match?', activityId === mappedId);
             
-            // Match by exact text or by activity ID
-            if (buttonText === activityName || activityId === mappedId) {
+            // Match by exact text (cleaned) or by activity ID
+            if (cleanButtonText === activityName || activityId === mappedId) {
                 console.log('✅ Found matching button!');
                 console.log('Activity ID to remove:', activityId);
                 console.log('Was it completed?', todayActivities[activityId]);
