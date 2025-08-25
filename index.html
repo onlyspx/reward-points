@@ -70,9 +70,12 @@
                     <button class="activity-btn" data-activity="dinner" data-points="5">
                         🍽️ Dinner
                     </button>
-                    <button class="activity-btn" data-activity="drink-milk" data-points="2">
-                        🥛 Drink Milk
-                    </button>
+                                <button class="activity-btn" data-activity="drink-milk" data-points="2">
+                🥛 Drink Milk
+            </button>
+            <button class="activity-btn" data-activity="use-restroom" data-points="1">
+                🚽 Use Restroom
+            </button>
                 </div>
             </div>
 
@@ -152,8 +155,11 @@
             </div>
         </section>
 
-        <!-- Reset Button (Hidden by default) -->
-        <button class="reset-btn" id="resetBtn">🔄 Reset All Points</button>
+        <!-- Settings and Reset Buttons -->
+        <div class="bottom-buttons">
+            <button class="settings-btn" id="settingsBtn">⚙️ Settings</button>
+            <button class="reset-btn" id="resetBtn">🔄 Reset All Points</button>
+        </div>
     </div>
 
     <!-- Confirmation Modal -->
@@ -181,6 +187,31 @@
                 </div>
             </div>
             <button id="closeBadgeModal">Close</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content settings-modal">
+            <h3>⚙️ Settings</h3>
+            <div class="settings-form">
+                <div class="setting-group">
+                    <label for="kidName">Kid's Name:</label>
+                    <input type="text" id="kidName" placeholder="Enter name">
+                </div>
+                <div class="setting-group">
+                    <label for="startingPoints">Starting Points Balance:</label>
+                    <input type="number" id="startingPoints" placeholder="0" min="0" max="1000">
+                </div>
+                <div class="setting-group">
+                    <label for="dailyLimit">Daily Point Limit:</label>
+                    <input type="number" id="dailyLimit" placeholder="50" min="10" max="200">
+                </div>
+            </div>
+            <div class="settings-buttons">
+                <button id="saveSettings">💾 Save Settings</button>
+                <button id="closeSettings">Cancel</button>
+            </div>
         </div>
     </div>
 

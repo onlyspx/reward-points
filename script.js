@@ -19,7 +19,12 @@ class RewardPointsTracker {
             lastReset: null,
             badges: {},
             activityCounts: {},
-            dailyActivities: {} // Track activities completed today
+            dailyActivities: {}, // Track activities completed today
+            settings: {
+                kidName: 'Vir',
+                startingPoints: 0,
+                dailyLimit: 50
+            }
         };
     }
 
@@ -32,6 +37,7 @@ class RewardPointsTracker {
     init() {
         this.checkMidnightReset();
         this.setupEventListeners();
+        this.loadSettings();
         this.updateDisplay();
         this.initChart();
         this.updateProgressBars();
@@ -89,6 +95,11 @@ class RewardPointsTracker {
             });
         });
 
+        // Settings button
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            this.showSettingsModal();
+        });
+
         // Reset button
         document.getElementById('resetBtn').addEventListener('click', () => {
             this.showResetModal();
@@ -104,16 +115,31 @@ class RewardPointsTracker {
             this.hideResetModal();
         });
 
-        // Badge modal close button
-        document.getElementById('closeBadgeModal').addEventListener('click', () => {
-            this.hideBadgeModal();
+        // Settings modal buttons
+        document.getElementById('saveSettings').addEventListener('click', () => {
+            this.saveSettings();
         });
 
-        // Close badge modal when clicking outside
+        document.getElementById('closeSettings').addEventListener('click', () => {
+            this.hideSettingsModal();
+        });
+
+        // Close modals when clicking outside
         document.getElementById('badgeModal').addEventListener('click', (e) => {
             if (e.target.id === 'badgeModal') {
                 this.hideBadgeModal();
             }
+        });
+
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') {
+                this.hideSettingsModal();
+            }
+        });
+
+        // Badge modal close button
+        document.getElementById('closeBadgeModal').addEventListener('click', () => {
+            this.hideBadgeModal();
         });
 
         // Enter key for custom points
@@ -128,16 +154,17 @@ class RewardPointsTracker {
     addPoints(points, activity) {
         const today = this.getTodayString();
         
-        // Check if activity already completed today (except brushing which can be done twice, and quick add)
+        // Check if activity already completed today (except brushing, restroom, and quick add)
         if (!this.data.dailyActivities[today]) {
             this.data.dailyActivities[today] = {};
         }
         
         const isBrushing = activity.includes('brush-teeth');
+        const isRestroom = activity === 'use-restroom';
         const isQuickAdd = activity === 'Quick Add' || activity === 'Custom Points';
         const activityCompleted = this.data.dailyActivities[today][activity];
         
-        if (activityCompleted && !isBrushing && !isQuickAdd) {
+        if (activityCompleted && !isBrushing && !isQuickAdd && !isRestroom) {
             this.showActivityAlreadyCompletedMessage(activity);
             return;
         }
@@ -147,13 +174,14 @@ class RewardPointsTracker {
             return;
         }
         
-        // Check daily point limit (50 points max per day)
+        // Check daily point limit (configurable)
         if (!this.data.dailyPoints[today]) {
             this.data.dailyPoints[today] = 0;
         }
         
         const currentDailyPoints = this.data.dailyPoints[today];
-        const remainingDailyPoints = 50 - currentDailyPoints;
+        const dailyLimit = this.data.settings.dailyLimit || 50;
+        const remainingDailyPoints = dailyLimit - currentDailyPoints;
         
         if (remainingDailyPoints <= 0) {
             this.showDailyLimitMessage();
@@ -169,8 +197,8 @@ class RewardPointsTracker {
         // Update daily points
         this.data.dailyPoints[today] += actualPoints;
         
-        // Mark activity as completed today (except quick add)
-        if (!isQuickAdd) {
+        // Mark activity as completed today (except quick add and restroom)
+        if (!isQuickAdd && !isRestroom) {
             this.data.dailyActivities[today][activity] = true;
         }
         
@@ -217,6 +245,11 @@ class RewardPointsTracker {
         document.getElementById('totalPoints').textContent = this.data.totalPoints;
         document.getElementById('todayPoints').textContent = todayPoints;
         
+        // Update header with kid's name
+        const kidName = this.data.settings.kidName || 'Vir';
+        document.querySelector('.header h1').textContent = `🎉 ${kidName}'s Reward Points!`;
+        document.title = `🎉 ${kidName}'s Reward Points!`;
+        
         // Update recent activities
         this.updateActivityList();
     }
@@ -225,10 +258,11 @@ class RewardPointsTracker {
     updateProgressBars() {
         const today = this.getTodayString();
         const todayPoints = this.data.dailyPoints[today] || 0;
+        const dailyLimit = this.data.settings.dailyLimit || 50;
         
-        // Calculate progress percentages (50 points = 100% for daily, 100 points = 100% for total)
+        // Calculate progress percentages (configurable daily limit, 100 points = 100% for total)
         const totalProgress = Math.min((this.data.totalPoints / 100) * 100, 100);
-        const todayProgress = Math.min((todayPoints / 50) * 100, 100);
+        const todayProgress = Math.min((todayPoints / dailyLimit) * 100, 100);
         
         document.getElementById('totalProgress').style.width = totalProgress + '%';
         document.getElementById('todayProgress').style.width = todayProgress + '%';
@@ -935,6 +969,7 @@ class RewardPointsTracker {
             'lunch': 'Lunch',
             'dinner': 'Dinner',
             'drink-milk': 'Drink Milk',
+            'use-restroom': 'Use Restroom',
             'piano-practice': 'Piano Practice',
             'reading-10min': 'Reading (10 min)',
             'maths-10min': 'Maths (10 min)',
@@ -969,6 +1004,92 @@ class RewardPointsTracker {
             animation: slideIn 0.5s ease-out;
         `;
         notification.textContent = `✅ ${activityName} completed today!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 2000);
+    }
+
+    // Load settings
+    loadSettings() {
+        const kidNameInput = document.getElementById('kidName');
+        const startingPointsInput = document.getElementById('startingPoints');
+        const dailyLimitInput = document.getElementById('dailyLimit');
+        
+        kidNameInput.value = this.data.settings.kidName || 'Vir';
+        startingPointsInput.value = this.data.settings.startingPoints || 0;
+        dailyLimitInput.value = this.data.settings.dailyLimit || 50;
+    }
+
+    // Show settings modal
+    showSettingsModal() {
+        this.loadSettings();
+        const modal = document.getElementById('settingsModal');
+        modal.style.display = 'block';
+        modal.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.style.opacity = '1';
+        }, 10);
+    }
+
+    // Hide settings modal
+    hideSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+
+    // Save settings
+    saveSettings() {
+        const kidName = document.getElementById('kidName').value.trim();
+        const startingPoints = parseInt(document.getElementById('startingPoints').value) || 0;
+        const dailyLimit = parseInt(document.getElementById('dailyLimit').value) || 50;
+        
+        // Update settings
+        this.data.settings.kidName = kidName || 'Vir';
+        this.data.settings.startingPoints = startingPoints;
+        this.data.settings.dailyLimit = dailyLimit;
+        
+        // Apply starting points if this is the first time
+        if (this.data.totalPoints === 0 && startingPoints > 0) {
+            this.data.totalPoints = startingPoints;
+        }
+        
+        this.saveData();
+        this.updateDisplay();
+        this.updateProgressBars();
+        this.hideSettingsModal();
+        
+        // Show success message
+        this.showSettingsSavedMessage();
+    }
+
+    // Show settings saved message
+    showSettingsSavedMessage() {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+            border: 3px solid #27ae60;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = '✅ Settings saved successfully!';
         document.body.appendChild(notification);
         
         setTimeout(() => {
