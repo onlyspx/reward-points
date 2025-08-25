@@ -54,7 +54,7 @@ class RewardPointsTracker {
         document.querySelectorAll('.point-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const points = parseInt(e.target.dataset.points);
-                this.addPoints(points, 'Quick Add');
+                this.addPoints(points, 'Quick Add', 'Quick Add');
             });
         });
 
@@ -63,7 +63,7 @@ class RewardPointsTracker {
             const input = document.getElementById('customPoints');
             const points = parseInt(input.value);
             if (points && points > 0 && points <= 100) {
-                this.addPoints(points, 'Custom Points');
+                this.addPoints(points, 'Custom Points', 'Custom Points');
                 input.value = '';
             } else {
                 alert('Please enter a number between 1 and 100!');
@@ -87,7 +87,7 @@ class RewardPointsTracker {
                     return;
                 }
                 
-                this.addPoints(points, activityName);
+                this.addPoints(points, activity, activityName);
                 
                 // Add visual feedback
                 e.target.style.transform = 'scale(0.95)';
@@ -161,7 +161,7 @@ class RewardPointsTracker {
     }
 
     // Add points
-    addPoints(points, activity) {
+    addPoints(points, activityId, activityName) {
         const today = this.getTodayString();
         
         // Check if activity already completed today (except brushing, restroom, and quick add)
@@ -169,18 +169,18 @@ class RewardPointsTracker {
             this.data.dailyActivities[today] = {};
         }
         
-        const isBrushing = activity.includes('brush-teeth');
-        const isRestroom = activity === 'use-restroom';
-        const isQuickAdd = activity === 'Quick Add' || activity === 'Custom Points';
-        const activityCompleted = this.data.dailyActivities[today][activity];
+        const isBrushing = activityId.includes('brush-teeth');
+        const isRestroom = activityId === 'use-restroom';
+        const isQuickAdd = activityId === 'Quick Add' || activityId === 'Custom Points';
+        const activityCompleted = this.data.dailyActivities[today][activityId];
         
         if (activityCompleted && !isBrushing && !isQuickAdd && !isRestroom) {
-            this.showActivityAlreadyCompletedMessage(activity);
+            this.showActivityAlreadyCompletedMessage(activityId);
             return;
         }
         
         if (isBrushing && activityCompleted) {
-            this.showActivityAlreadyCompletedMessage(activity);
+            this.showActivityAlreadyCompletedMessage(activityId);
             return;
         }
         
@@ -209,18 +209,18 @@ class RewardPointsTracker {
         
         // Mark activity as completed today (except quick add and restroom)
         if (!isQuickAdd && !isRestroom) {
-            this.data.dailyActivities[today][activity] = true;
+            this.data.dailyActivities[today][activityId] = true;
         }
         
         // Update activity counts for badges
-        if (!this.data.activityCounts[activity]) {
-            this.data.activityCounts[activity] = 0;
+        if (!this.data.activityCounts[activityId]) {
+            this.data.activityCounts[activityId] = 0;
         }
-        this.data.activityCounts[activity]++;
+        this.data.activityCounts[activityId]++;
         
         // Add to activities list
         this.data.activities.unshift({
-            activity: activity,
+            activity: activityName,
             points: actualPoints,
             timestamp: new Date().toISOString(),
             date: today
