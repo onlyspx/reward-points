@@ -133,6 +133,14 @@
             </div>
         </section>
 
+        <!-- Achievement Badges -->
+        <section class="badges-section">
+            <h2>🏆 Achievements</h2>
+            <div class="badges-grid" id="badgesGrid">
+                <!-- Badges will be populated by JavaScript -->
+            </div>
+        </section>
+
         <!-- Recent Activity -->
         <section class="recent-activity">
             <h2>🎯 Recent Activity</h2>
@@ -154,6 +162,22 @@
                 <button id="confirmReset">Yes, Reset</button>
                 <button id="cancelReset">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Badge Detail Modal -->
+    <div class="modal" id="badgeModal">
+        <div class="modal-content badge-modal">
+            <div class="badge-detail">
+                <div class="badge-detail-icon" id="badgeDetailIcon">🏆</div>
+                <h3 id="badgeDetailName">Badge Name</h3>
+                <p id="badgeDetailDescription">Badge description</p>
+                <div class="badge-detail-info" id="badgeDetailInfo">
+                    <div class="badge-status" id="badgeStatus">Status</div>
+                    <div class="badge-date" id="badgeDate"></div>
+                </div>
+            </div>
+            <button id="closeBadgeModal">Close</button>
         </div>
     </div>
 

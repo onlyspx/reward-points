@@ -16,7 +16,9 @@ class RewardPointsTracker {
             totalPoints: 0,
             dailyPoints: {},
             activities: [],
-            lastReset: null
+            lastReset: null,
+            badges: {},
+            activityCounts: {}
         };
     }
 
@@ -31,6 +33,8 @@ class RewardPointsTracker {
         this.updateDisplay();
         this.initChart();
         this.updateProgressBars();
+        this.initBadges();
+        this.updateBadges();
     }
 
     // Setup event listeners
@@ -86,6 +90,18 @@ class RewardPointsTracker {
             this.hideResetModal();
         });
 
+        // Badge modal close button
+        document.getElementById('closeBadgeModal').addEventListener('click', () => {
+            this.hideBadgeModal();
+        });
+
+        // Close badge modal when clicking outside
+        document.getElementById('badgeModal').addEventListener('click', (e) => {
+            if (e.target.id === 'badgeModal') {
+                this.hideBadgeModal();
+            }
+        });
+
         // Enter key for custom points
         document.getElementById('customPoints').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -107,6 +123,12 @@ class RewardPointsTracker {
         }
         this.data.dailyPoints[today] += points;
         
+        // Update activity counts for badges
+        if (!this.data.activityCounts[activity]) {
+            this.data.activityCounts[activity] = 0;
+        }
+        this.data.activityCounts[activity]++;
+        
         // Add to activities list
         this.data.activities.unshift({
             activity: activity,
@@ -125,6 +147,7 @@ class RewardPointsTracker {
         this.updateDisplay();
         this.updateProgressBars();
         this.updateChart();
+        this.updateBadges();
         this.showPointsAddedAnimation(points);
     }
 
@@ -357,6 +380,343 @@ class RewardPointsTracker {
         } else {
             return date.toLocaleDateString('en-US', { weekday: 'short' });
         }
+    }
+
+    // Initialize badges
+    initBadges() {
+        this.badges = [
+            {
+                id: 'first-points',
+                name: 'First Steps!',
+                description: 'Earn your first 10 points',
+                icon: '🌟',
+                requirement: { type: 'totalPoints', value: 10 }
+            },
+            {
+                id: 'piano-master',
+                name: 'Piano Master',
+                description: 'Practice piano 5 times',
+                icon: '🎹',
+                requirement: { type: 'activity', value: 5, activity: 'Piano Practice' }
+            },
+            {
+                id: 'reading-champion',
+                name: 'Reading Champion',
+                description: 'Read 10 times',
+                icon: '📚',
+                requirement: { type: 'activity', value: 10, activity: 'Reading (10 min)' }
+            },
+            {
+                id: 'clean-hero',
+                name: 'Clean Room Hero',
+                description: 'Clean room 3 times',
+                icon: '🧹',
+                requirement: { type: 'activity', value: 3, activity: 'Clean Room' }
+            },
+            {
+                id: 'swimming-star',
+                name: 'Swimming Star',
+                description: 'Go swimming 3 times',
+                icon: '🏊',
+                requirement: { type: 'activity', value: 3, activity: 'Swimming' }
+            },
+            {
+                id: 'math-wizard',
+                name: 'Math Wizard',
+                description: 'Do maths 5 times',
+                icon: '➗',
+                requirement: { type: 'activity', value: 5, activity: 'Maths (10 min)' }
+            },
+            {
+                id: 'good-behavior',
+                name: 'Good Behavior',
+                description: 'Show good behavior 10 times',
+                icon: '😊',
+                requirement: { type: 'activity', value: 10, activity: 'Good Behavior' }
+            },
+            {
+                id: 'soccer-player',
+                name: 'Soccer Player',
+                description: 'Play soccer 3 times',
+                icon: '⚽',
+                requirement: { type: 'activity', value: 3, activity: 'Soccer' }
+            },
+            {
+                id: 'spanish-learner',
+                name: 'Spanish Learner',
+                description: 'Practice Spanish 5 times',
+                icon: '🇪🇸',
+                requirement: { type: 'activity', value: 5, activity: 'Spanish' }
+            },
+            {
+                id: 'point-master',
+                name: 'Point Master',
+                description: 'Earn 100 total points',
+                icon: '👑',
+                requirement: { type: 'totalPoints', value: 100 }
+            },
+            {
+                id: 'daily-champion',
+                name: 'Daily Champion',
+                description: 'Earn 20 points in one day',
+                icon: '🏆',
+                requirement: { type: 'dailyPoints', value: 20 }
+            },
+            {
+                id: 'consistent',
+                name: 'Consistent',
+                description: 'Earn points 3 days in a row',
+                icon: '📅',
+                requirement: { type: 'streak', value: 3 }
+            }
+        ];
+        
+        this.renderBadges();
+    }
+
+    // Render badges
+    renderBadges() {
+        const badgesGrid = document.getElementById('badgesGrid');
+        badgesGrid.innerHTML = this.badges.map(badge => `
+            <div class="badge" id="badge-${badge.id}" data-badge-id="${badge.id}">
+                <span class="badge-icon">${badge.icon}</span>
+                <div class="badge-name">${badge.name}</div>
+                <div class="badge-description">${badge.description}</div>
+                <div class="badge-progress" id="progress-${badge.id}"></div>
+            </div>
+        `).join('');
+        
+        // Add click event listeners to badges
+        this.badges.forEach(badge => {
+            const badgeElement = document.getElementById(`badge-${badge.id}`);
+            badgeElement.addEventListener('click', () => {
+                this.showBadgeDetail(badge);
+            });
+        });
+    }
+
+    // Update badges
+    updateBadges() {
+        this.badges.forEach(badge => {
+            const isUnlocked = this.checkBadgeUnlocked(badge);
+            const badgeElement = document.getElementById(`badge-${badge.id}`);
+            const progressElement = document.getElementById(`progress-${badge.id}`);
+            
+            if (isUnlocked) {
+                if (!this.data.badges[badge.id]) {
+                    // Newly unlocked!
+                    this.data.badges[badge.id] = {
+                        unlockedAt: new Date().toISOString(),
+                        isNew: true
+                    };
+                    this.showBadgeUnlockAnimation(badgeElement);
+                }
+                badgeElement.classList.add('unlocked');
+                progressElement.textContent = '✅ Unlocked!';
+            } else {
+                badgeElement.classList.remove('unlocked');
+                const progress = this.getBadgeProgress(badge);
+                progressElement.textContent = progress;
+            }
+        });
+        
+        this.saveData();
+    }
+
+    // Check if badge is unlocked
+    checkBadgeUnlocked(badge) {
+        const req = badge.requirement;
+        
+        switch (req.type) {
+            case 'totalPoints':
+                return this.data.totalPoints >= req.value;
+            
+            case 'activity':
+                const count = this.data.activityCounts[req.activity] || 0;
+                return count >= req.value;
+            
+            case 'dailyPoints':
+                const today = this.getTodayString();
+                const todayPoints = this.data.dailyPoints[today] || 0;
+                return todayPoints >= req.value;
+            
+            case 'streak':
+                return this.getCurrentStreak() >= req.value;
+            
+            default:
+                return false;
+        }
+    }
+
+    // Get badge progress
+    getBadgeProgress(badge) {
+        const req = badge.requirement;
+        
+        switch (req.type) {
+            case 'totalPoints':
+                return `${this.data.totalPoints}/${req.value} points`;
+            
+            case 'activity':
+                const count = this.data.activityCounts[req.activity] || 0;
+                return `${count}/${req.value} times`;
+            
+            case 'dailyPoints':
+                const today = this.getTodayString();
+                const todayPoints = this.data.dailyPoints[today] || 0;
+                return `${todayPoints}/${req.value} points today`;
+            
+            case 'streak':
+                const streak = this.getCurrentStreak();
+                return `${streak}/${req.value} days`;
+            
+            default:
+                return '';
+        }
+    }
+
+    // Get current streak
+    getCurrentStreak() {
+        const today = new Date();
+        let streak = 0;
+        let currentDate = new Date(today);
+        
+        while (true) {
+            const dateString = this.formatDate(currentDate);
+            if (this.data.dailyPoints[dateString] && this.data.dailyPoints[dateString] > 0) {
+                streak++;
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        
+        return streak;
+    }
+
+    // Format date helper
+    formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+
+    // Show badge unlock animation
+    showBadgeUnlockAnimation(badgeElement) {
+        badgeElement.classList.add('unlock-animation');
+        
+        // Create confetti effect
+        this.createConfetti();
+        
+        // Show notification
+        this.showBadgeNotification(badgeElement.querySelector('.badge-name').textContent);
+        
+        setTimeout(() => {
+            badgeElement.classList.remove('unlock-animation');
+        }, 1000);
+    }
+
+    // Create confetti effect
+    createConfetti() {
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.cssText = `
+                position: fixed;
+                top: -10px;
+                left: ${Math.random() * 100}vw;
+                width: 10px;
+                height: 10px;
+                background: ${['#ffb347', '#ffcc5c', '#87ceeb', '#98d8e8', '#e67e22'][Math.floor(Math.random() * 5)]};
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                animation: confettiFall 3s linear forwards;
+            `;
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                document.body.removeChild(confetti);
+            }, 3000);
+        }
+    }
+
+    // Show badge notification
+    showBadgeNotification(badgeName) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffb347 0%, #ffcc5c 100%);
+            color: #2c3e50;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(255, 179, 71, 0.3);
+            border: 3px solid #e67e22;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `🏆 New Badge: ${badgeName}!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
+
+    // Show badge detail modal
+    showBadgeDetail(badge) {
+        const isUnlocked = this.checkBadgeUnlocked(badge);
+        const badgeData = this.data.badges[badge.id];
+        
+        // Update modal content
+        document.getElementById('badgeDetailIcon').textContent = badge.icon;
+        document.getElementById('badgeDetailName').textContent = badge.name;
+        document.getElementById('badgeDetailDescription').textContent = badge.description;
+        
+        const statusElement = document.getElementById('badgeStatus');
+        const dateElement = document.getElementById('badgeDate');
+        
+        if (isUnlocked) {
+            statusElement.textContent = '✅ Unlocked!';
+            statusElement.style.color = '#27ae60';
+            
+            if (badgeData && badgeData.unlockedAt) {
+                const unlockDate = new Date(badgeData.unlockedAt);
+                dateElement.textContent = `Unlocked on ${unlockDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}`;
+            } else {
+                dateElement.textContent = 'Unlocked recently!';
+            }
+        } else {
+            statusElement.textContent = '🔒 Locked';
+            statusElement.style.color = '#e74c3c';
+            dateElement.textContent = this.getBadgeProgress(badge);
+        }
+        
+        // Show modal with animation
+        const modal = document.getElementById('badgeModal');
+        modal.style.display = 'block';
+        modal.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.style.opacity = '1';
+        }, 10);
+    }
+
+    // Hide badge modal
+    hideBadgeModal() {
+        const modal = document.getElementById('badgeModal');
+        modal.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
     }
 }
 
