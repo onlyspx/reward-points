@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Vir's Reward Points!</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎉 Vir's Reward Points!</h1>
+            <div class="stars">⭐ ⭐ ⭐</div>
+        </header>
+
+        <!-- Main Stats -->
+        <section class="stats">
+            <div class="stat-card total-points">
+                <h2>Total Points</h2>
+                <div class="points-display" id="totalPoints">0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="totalProgress"></div>
+                </div>
+            </div>
+            
+            <div class="stat-card today-points">
+                <h2>Today's Points</h2>
+                <div class="points-display" id="todayPoints">0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="todayProgress"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Add Points -->
+        <section class="quick-add">
+            <h2>🎯 Add Points!</h2>
+            <div class="point-buttons">
+                <button class="point-btn" data-points="1">+1</button>
+                <button class="point-btn" data-points="5">+5</button>
+            </div>
+            <div class="custom-points">
+                <input type="number" id="customPoints" placeholder="Other amount" min="1" max="100">
+                <button id="addCustomPoints">Add!</button>
+            </div>
+        </section>
+
+        <!-- Activity Buttons -->
+        <section class="activities">
+            <h2>🎨 What did you do today?</h2>
+            
+            <!-- Daily Routines -->
+            <div class="activity-category">
+                <h3>🌅 Daily Routines</h3>
+                <div class="activity-grid">
+                    <button class="activity-btn" data-activity="brush-teeth" data-points="3">
+                        🦷 Brush Teeth
+                    </button>
+                    <button class="activity-btn" data-activity="breakfast" data-points="5">
+                        🍳 Breakfast
+                    </button>
+                    <button class="activity-btn" data-activity="lunch" data-points="5">
+                        🥪 Lunch
+                    </button>
+                    <button class="activity-btn" data-activity="dinner" data-points="5">
+                        🍽️ Dinner
+                    </button>
+                    <button class="activity-btn" data-activity="drink-milk" data-points="2">
+                        🥛 Drink Milk
+                    </button>
+                </div>
+            </div>
+
+            <!-- Learning Activities -->
+            <div class="activity-category">
+                <h3>📚 Learning Time</h3>
+                <div class="activity-grid">
+                    <button class="activity-btn" data-activity="piano-practice" data-points="10">
+                        🎹 Piano Practice
+                    </button>
+                    <button class="activity-btn" data-activity="reading-10min" data-points="8">
+                        📖 Reading (10 min)
+                    </button>
+                    <button class="activity-btn" data-activity="maths-10min" data-points="8">
+                        ➗ Maths (10 min)
+                    </button>
+                    <button class="activity-btn" data-activity="spanish" data-points="6">
+                        🇪🇸 Spanish
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sports & Exercise -->
+            <div class="activity-category">
+                <h3>⚽ Sports & Exercise</h3>
+                <div class="activity-grid">
+                    <button class="activity-btn" data-activity="soccer" data-points="12">
+                        ⚽ Soccer
+                    </button>
+                    <button class="activity-btn" data-activity="baseball" data-points="12">
+                        ⚾ Baseball
+                    </button>
+                    <button class="activity-btn" data-activity="swimming" data-points="15">
+                        🏊 Swimming
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chores & Behavior -->
+            <div class="activity-category">
+                <h3>🏠 Chores & Behavior</h3>
+                <div class="activity-grid">
+                    <button class="activity-btn" data-activity="clean-room" data-points="8">
+                        🧹 Clean Room
+                    </button>
+                    <button class="activity-btn" data-activity="play-nicely-sister" data-points="5">
+                        👧👦 Play Nicely with Sister
+                    </button>
+                    <button class="activity-btn" data-activity="good-behavior" data-points="3">
+                        😊 Good Behavior
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Chart -->
+        <section class="chart-section">
+            <h2>📈 Your Progress</h2>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="recent-activity">
+            <h2>🎯 Recent Activity</h2>
+            <div class="activity-list" id="activityList">
+                <div class="no-activity">No activities yet. Start earning points! 🚀</div>
+            </div>
+        </section>
+
+        <!-- Reset Button (Hidden by default) -->
+        <button class="reset-btn" id="resetBtn">🔄 Reset All Points</button>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <h3>Are you sure?</h3>
+            <p>This will reset all your points to zero!</p>
+            <div class="modal-buttons">
+                <button id="confirmReset">Yes, Reset</button>
+                <button id="cancelReset">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
