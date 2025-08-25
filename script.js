@@ -289,18 +289,19 @@ class RewardPointsTracker {
         
         activityList.innerHTML = this.data.activities
             .slice(0, 10) // Show only last 10 activities
-            .map(activity => {
+            .map((activity, index) => {
                 const time = new Date(activity.timestamp).toLocaleTimeString([], { 
                     hour: '2-digit', 
                     minute: '2-digit' 
                 });
                 return `
-                    <div class="activity-item">
+                    <div class="activity-item" data-index="${index}">
                         <div class="activity-info">
                             <div class="activity-name">${activity.activity}</div>
                             <div class="activity-time">${time}</div>
                         </div>
                         <div class="activity-points">+${activity.points}</div>
+                        <button class="undo-btn" onclick="rewardTracker.undoActivity(${index})" title="Undo this activity">↶</button>
                     </div>
                 `;
             })
@@ -1117,6 +1118,95 @@ class RewardPointsTracker {
             }, 500);
         }, 2000);
     }
+
+    // Undo activity
+    undoActivity(index) {
+        if (index < 0 || index >= this.data.activities.length) {
+            return;
+        }
+        
+        const activity = this.data.activities[index];
+        const points = activity.points;
+        const activityName = activity.activity;
+        
+        // Remove points from total
+        this.data.totalPoints -= points;
+        
+        // Remove points from daily total
+        const today = this.getTodayString();
+        if (this.data.dailyPoints[today]) {
+            this.data.dailyPoints[today] -= points;
+            if (this.data.dailyPoints[today] < 0) {
+                this.data.dailyPoints[today] = 0;
+            }
+        }
+        
+        // Remove from activities list
+        this.data.activities.splice(index, 1);
+        
+        // Decrease activity count for badges
+        if (this.data.activityCounts[activityName]) {
+            this.data.activityCounts[activityName]--;
+            if (this.data.activityCounts[activityName] < 0) {
+                this.data.activityCounts[activityName] = 0;
+            }
+        }
+        
+        // Unmark activity as completed for today (if it was a daily activity)
+        const todayActivities = this.data.dailyActivities[today] || {};
+        
+        // Find the activity ID that matches this activity name
+        const activityButtons = document.querySelectorAll('.activity-btn');
+        for (let btn of activityButtons) {
+            if (btn.textContent.trim() === activityName) {
+                const activityId = btn.dataset.activity;
+                if (todayActivities[activityId]) {
+                    delete todayActivities[activityId];
+                }
+                break;
+            }
+        }
+        
+        // Save and update display
+        this.saveData();
+        this.updateDisplay();
+        this.updateProgressBars();
+        this.updateChart();
+        this.updateBadges();
+        this.updateActivityButtons();
+        this.updateActivityList();
+        
+        // Show undo confirmation
+        this.showUndoConfirmation(activityName, points);
+    }
+
+    // Show undo confirmation
+    showUndoConfirmation(activityName, points) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+            border: 3px solid #e74c3c;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `↶ Undid ${activityName} (-${points} points)`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 2000);
+    }
 }
 
 // Add floating animation CSS
@@ -1137,5 +1227,5 @@ document.head.appendChild(style);
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new RewardPointsTracker();
+    window.rewardTracker = new RewardPointsTracker();
 });
