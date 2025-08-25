@@ -68,6 +68,17 @@ class RewardPointsTracker {
                 const activity = e.target.dataset.activity;
                 const points = parseInt(e.target.dataset.points);
                 const activityName = e.target.textContent.trim();
+                
+                // Check if activity is already completed
+                const today = this.getTodayString();
+                const todayActivities = this.data.dailyActivities[today] || {};
+                const isCompleted = todayActivities[activity];
+                
+                if (isCompleted) {
+                    this.showActivityCompletionInfo(activity);
+                    return;
+                }
+                
                 this.addPoints(points, activityName);
                 
                 // Add visual feedback
@@ -540,21 +551,7 @@ class RewardPointsTracker {
             });
         });
         
-        // Add click event listeners to activity buttons for completion info
-        document.querySelectorAll('.activity-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const activity = e.target.dataset.activity;
-                const today = this.getTodayString();
-                const todayActivities = this.data.dailyActivities[today] || {};
-                const isCompleted = todayActivities[activity];
-                
-                if (isCompleted) {
-                    this.showActivityCompletionInfo(activity);
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        });
+
     }
 
     // Update badges
