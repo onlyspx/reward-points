@@ -18,7 +18,8 @@ class RewardPointsTracker {
             activities: [],
             lastReset: null,
             badges: {},
-            activityCounts: {}
+            activityCounts: {},
+            dailyActivities: {} // Track activities completed today
         };
     }
 
@@ -29,12 +30,14 @@ class RewardPointsTracker {
 
     // Initialize the app
     init() {
+        this.checkMidnightReset();
         this.setupEventListeners();
         this.updateDisplay();
         this.initChart();
         this.updateProgressBars();
         this.initBadges();
         this.updateBadges();
+        this.updateActivityButtons();
     }
 
     // Setup event listeners
@@ -114,6 +117,24 @@ class RewardPointsTracker {
     addPoints(points, activity) {
         const today = this.getTodayString();
         
+        // Check if activity already completed today (except brushing which can be done twice)
+        if (!this.data.dailyActivities[today]) {
+            this.data.dailyActivities[today] = {};
+        }
+        
+        const isBrushing = activity.includes('brush-teeth');
+        const activityCompleted = this.data.dailyActivities[today][activity];
+        
+        if (activityCompleted && !isBrushing) {
+            this.showActivityAlreadyCompletedMessage(activity);
+            return;
+        }
+        
+        if (isBrushing && activityCompleted) {
+            this.showActivityAlreadyCompletedMessage(activity);
+            return;
+        }
+        
         // Check daily point limit (50 points max per day)
         if (!this.data.dailyPoints[today]) {
             this.data.dailyPoints[today] = 0;
@@ -135,6 +156,9 @@ class RewardPointsTracker {
         
         // Update daily points
         this.data.dailyPoints[today] += actualPoints;
+        
+        // Mark activity as completed today
+        this.data.dailyActivities[today][activity] = true;
         
         // Update activity counts for badges
         if (!this.data.activityCounts[activity]) {
@@ -161,6 +185,7 @@ class RewardPointsTracker {
         this.updateProgressBars();
         this.updateChart();
         this.updateBadges();
+        this.updateActivityButtons();
         this.showPointsAddedAnimation(actualPoints);
         
         // Show message if points were adjusted
@@ -415,56 +440,56 @@ class RewardPointsTracker {
                 name: 'Piano Master',
                 description: 'Practice piano 5 times',
                 icon: '🎹',
-                requirement: { type: 'activity', value: 5, activity: 'Piano Practice' }
+                requirement: { type: 'activity', value: 5, activity: 'piano-practice' }
             },
             {
                 id: 'reading-champion',
                 name: 'Reading Champion',
                 description: 'Read 10 times',
                 icon: '📚',
-                requirement: { type: 'activity', value: 10, activity: 'Reading (10 min)' }
+                requirement: { type: 'activity', value: 10, activity: 'reading-10min' }
             },
             {
                 id: 'clean-hero',
                 name: 'Clean Room Hero',
                 description: 'Clean room 3 times',
                 icon: '🧹',
-                requirement: { type: 'activity', value: 3, activity: 'Clean Room' }
+                requirement: { type: 'activity', value: 3, activity: 'clean-room' }
             },
             {
                 id: 'swimming-star',
                 name: 'Swimming Star',
                 description: 'Go swimming 3 times',
                 icon: '🏊',
-                requirement: { type: 'activity', value: 3, activity: 'Swimming' }
+                requirement: { type: 'activity', value: 3, activity: 'swimming' }
             },
             {
                 id: 'math-wizard',
                 name: 'Math Wizard',
                 description: 'Do maths 5 times',
                 icon: '➗',
-                requirement: { type: 'activity', value: 5, activity: 'Maths (10 min)' }
+                requirement: { type: 'activity', value: 5, activity: 'maths-10min' }
             },
             {
                 id: 'good-behavior',
                 name: 'Good Behavior',
                 description: 'Show good behavior 10 times',
                 icon: '😊',
-                requirement: { type: 'activity', value: 10, activity: 'Good Behavior' }
+                requirement: { type: 'activity', value: 10, activity: 'good-behavior' }
             },
             {
                 id: 'soccer-player',
                 name: 'Soccer Player',
                 description: 'Play soccer 3 times',
                 icon: '⚽',
-                requirement: { type: 'activity', value: 3, activity: 'Soccer' }
+                requirement: { type: 'activity', value: 3, activity: 'soccer' }
             },
             {
                 id: 'spanish-learner',
                 name: 'Spanish Learner',
                 description: 'Practice Spanish 5 times',
                 icon: '🇪🇸',
-                requirement: { type: 'activity', value: 5, activity: 'Spanish' }
+                requirement: { type: 'activity', value: 5, activity: 'spanish' }
             },
             {
                 id: 'point-master',
@@ -791,6 +816,100 @@ class RewardPointsTracker {
                 document.body.removeChild(notification);
             }, 500);
         }, 3000);
+    }
+
+    // Check for midnight reset
+    checkMidnightReset() {
+        const today = this.getTodayString();
+        const lastReset = this.data.lastReset;
+        
+        if (lastReset && lastReset !== today) {
+            // New day, reset daily activities
+            this.data.dailyActivities = {};
+            this.data.dailyPoints = {};
+            this.data.lastReset = today;
+            this.saveData();
+        } else if (!lastReset) {
+            // First time using the app
+            this.data.lastReset = today;
+            this.saveData();
+        }
+    }
+
+    // Update activity buttons based on completion status
+    updateActivityButtons() {
+        const today = this.getTodayString();
+        const todayActivities = this.data.dailyActivities[today] || {};
+        
+        document.querySelectorAll('.activity-btn').forEach(btn => {
+            const activity = btn.dataset.activity;
+            const isCompleted = todayActivities[activity];
+            
+            if (isCompleted) {
+                btn.style.opacity = '0.5';
+                btn.style.filter = 'grayscale(50%)';
+                btn.style.cursor = 'not-allowed';
+                btn.title = 'Already completed today!';
+            } else {
+                btn.style.opacity = '1';
+                btn.style.filter = 'grayscale(0%)';
+                btn.style.cursor = 'pointer';
+                btn.title = '';
+            }
+        });
+    }
+
+    // Show activity already completed message
+    showActivityAlreadyCompletedMessage(activity) {
+        const activityName = this.getActivityDisplayName(activity);
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+            border: 3px solid #2980b9;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `✅ ${activityName} already completed today!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
+
+    // Get activity display name
+    getActivityDisplayName(activity) {
+        const activityNames = {
+            'brush-teeth-morning': 'Brush Teeth (Morning)',
+            'brush-teeth-evening': 'Brush Teeth (Evening)',
+            'breakfast': 'Breakfast',
+            'lunch': 'Lunch',
+            'dinner': 'Dinner',
+            'drink-milk': 'Drink Milk',
+            'piano-practice': 'Piano Practice',
+            'reading-10min': 'Reading (10 min)',
+            'maths-10min': 'Maths (10 min)',
+            'spanish': 'Spanish',
+            'soccer': 'Soccer',
+            'baseball': 'Baseball',
+            'swimming': 'Swimming',
+            'clean-room': 'Clean Room',
+            'play-nicely-sister': 'Play Nicely with Sister',
+            'good-behavior': 'Good Behavior'
+        };
+        
+        return activityNames[activity] || activity;
     }
 }
 
