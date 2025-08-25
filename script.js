@@ -117,15 +117,16 @@ class RewardPointsTracker {
     addPoints(points, activity) {
         const today = this.getTodayString();
         
-        // Check if activity already completed today (except brushing which can be done twice)
+        // Check if activity already completed today (except brushing which can be done twice, and quick add)
         if (!this.data.dailyActivities[today]) {
             this.data.dailyActivities[today] = {};
         }
         
         const isBrushing = activity.includes('brush-teeth');
+        const isQuickAdd = activity === 'Quick Add' || activity === 'Custom Points';
         const activityCompleted = this.data.dailyActivities[today][activity];
         
-        if (activityCompleted && !isBrushing) {
+        if (activityCompleted && !isBrushing && !isQuickAdd) {
             this.showActivityAlreadyCompletedMessage(activity);
             return;
         }
@@ -157,8 +158,10 @@ class RewardPointsTracker {
         // Update daily points
         this.data.dailyPoints[today] += actualPoints;
         
-        // Mark activity as completed today
-        this.data.dailyActivities[today][activity] = true;
+        // Mark activity as completed today (except quick add)
+        if (!isQuickAdd) {
+            this.data.dailyActivities[today][activity] = true;
+        }
         
         // Update activity counts for badges
         if (!this.data.activityCounts[activity]) {
@@ -536,6 +539,22 @@ class RewardPointsTracker {
                 this.showBadgeDetail(badge);
             });
         });
+        
+        // Add click event listeners to activity buttons for completion info
+        document.querySelectorAll('.activity-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const activity = e.target.dataset.activity;
+                const today = this.getTodayString();
+                const todayActivities = this.data.dailyActivities[today] || {};
+                const isCompleted = todayActivities[activity];
+                
+                if (isCompleted) {
+                    this.showActivityCompletionInfo(activity);
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
     }
 
     // Update badges
@@ -846,15 +865,37 @@ class RewardPointsTracker {
             const isCompleted = todayActivities[activity];
             
             if (isCompleted) {
-                btn.style.opacity = '0.5';
-                btn.style.filter = 'grayscale(50%)';
-                btn.style.cursor = 'not-allowed';
-                btn.title = 'Already completed today!';
+                btn.style.opacity = '0.8';
+                btn.style.filter = 'grayscale(30%)';
+                btn.style.cursor = 'pointer';
+                btn.title = 'Completed today! Click to see details.';
+                
+                // Add checkmark if not already present
+                if (!btn.querySelector('.checkmark')) {
+                    const checkmark = document.createElement('div');
+                    checkmark.className = 'checkmark';
+                    checkmark.innerHTML = '✅';
+                    checkmark.style.cssText = `
+                        position: absolute;
+                        top: 5px;
+                        right: 5px;
+                        font-size: 1.2rem;
+                        z-index: 10;
+                    `;
+                    btn.style.position = 'relative';
+                    btn.appendChild(checkmark);
+                }
             } else {
                 btn.style.opacity = '1';
                 btn.style.filter = 'grayscale(0%)';
                 btn.style.cursor = 'pointer';
                 btn.title = '';
+                
+                // Remove checkmark if present
+                const existingCheckmark = btn.querySelector('.checkmark');
+                if (existingCheckmark) {
+                    btn.removeChild(existingCheckmark);
+                }
             }
         });
     }
@@ -910,6 +951,35 @@ class RewardPointsTracker {
         };
         
         return activityNames[activity] || activity;
+    }
+
+    // Show activity completion info
+    showActivityCompletionInfo(activity) {
+        const activityName = this.getActivityDisplayName(activity);
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+            border: 3px solid #27ae60;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `✅ ${activityName} completed today!`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 2000);
     }
 }
 
