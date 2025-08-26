@@ -45,6 +45,7 @@ class RewardPointsTracker {
         this.initBadges();
         this.updateBadges();
         this.updateActivityButtons();
+        this.updateRewardButtons();
         console.log('App initialized successfully');
     }
 
@@ -157,6 +158,16 @@ class RewardPointsTracker {
             if (e.key === 'Enter') {
                 document.getElementById('addCustomPoints').click();
             }
+        });
+
+        // Reward buttons
+        document.querySelectorAll('.reward-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const reward = e.target.dataset.reward;
+                const cost = parseInt(e.target.dataset.cost);
+                const rewardName = e.target.dataset.name;
+                this.spendPoints(cost, reward, rewardName);
+            });
         });
     }
 
@@ -300,7 +311,7 @@ class RewardPointsTracker {
                             <div class="activity-name">${activity.activity}</div>
                             <div class="activity-time">${time}</div>
                         </div>
-                        <div class="activity-points">+${activity.points}</div>
+                        <div class="activity-points">${activity.points > 0 ? '+' : ''}${activity.points}</div>
                         <button class="undo-btn" onclick="rewardTracker.undoActivity(${index})" title="Undo this activity">↶</button>
                     </div>
                 `;
@@ -1157,6 +1168,112 @@ class RewardPointsTracker {
                 document.body.removeChild(notification);
             }, 500);
         }, 2000);
+    }
+
+    // Spend points on rewards
+    spendPoints(cost, reward, rewardName) {
+        if (this.data.totalPoints < cost) {
+            this.showInsufficientPointsMessage(cost, this.data.totalPoints);
+            return;
+        }
+
+        // Deduct points
+        this.data.totalPoints -= cost;
+
+        // Add to activities list as a spending entry
+        this.data.activities.unshift({
+            activity: `🎁 ${rewardName}`,
+            points: -cost,
+            timestamp: new Date().toISOString(),
+            date: this.getTodayString(),
+            type: 'spending'
+        });
+
+        // Keep only last 50 activities
+        if (this.data.activities.length > 50) {
+            this.data.activities = this.data.activities.slice(0, 50);
+        }
+
+        // Save and update display
+        this.saveData();
+        this.updateDisplay();
+        this.updateProgressBars();
+        this.updateChart();
+        this.updateRewardButtons();
+        this.updateActivityList();
+
+        // Show success message
+        this.showRewardPurchasedMessage(rewardName, cost);
+    }
+
+    // Show insufficient points message
+    showInsufficientPointsMessage(required, available) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+            border: 3px solid #e74c3c;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `❌ Not enough points! Need ${required}, have ${available}`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
+
+    // Show reward purchased message
+    showRewardPurchasedMessage(rewardName, cost) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+            border: 3px solid #27ae60;
+            font-weight: bold;
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        `;
+        notification.textContent = `🎉 ${rewardName} purchased! (-${cost} points)`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.5s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 3000);
+    }
+
+    // Update reward button states based on available points
+    updateRewardButtons() {
+        document.querySelectorAll('.reward-btn').forEach(btn => {
+            const cost = parseInt(btn.dataset.cost);
+            if (this.data.totalPoints < cost) {
+                btn.disabled = true;
+                btn.title = `Need ${cost} points, have ${this.data.totalPoints}`;
+            } else {
+                btn.disabled = false;
+                btn.title = `Click to purchase for ${cost} points`;
+            }
+        });
     }
 
     // Undo activity
