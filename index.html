@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 Vir's Reward Points!</title>
+    <title>🎉 My Reward Points!</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -13,7 +13,7 @@
         <header class="header">
             <div class="header-content">
                 <div class="header-left">
-                    <h1>🎉 Vir's Reward Points!</h1>
+                    <h1>🎉 My Reward Points!</h1>
                     <div class="stars">⭐ ⭐ ⭐</div>
                 </div>
                 <button class="settings-btn-header" id="settingsBtn">⚙️</button>
@@ -160,6 +160,12 @@
                 <div class="reward-category">
                     <h3>🎮 Entertainment</h3>
                     <div class="reward-items">
+                        <button class="reward-btn" data-reward="screen-time-30min" data-cost="25" data-name="Screen Time (30 min)">
+                            📱 Screen Time (30 min) - 25 pts
+                        </button>
+                        <button class="reward-btn" data-reward="screen-time-1hour" data-cost="50" data-name="Screen Time (1 hour)">
+                            📱 Screen Time (1 hour) - 50 pts
+                        </button>
                         <button class="reward-btn" data-reward="tv-time-30min" data-cost="30" data-name="TV Time (30 min)">
                             📺 TV Time (30 min) - 30 pts
                         </button>
@@ -255,6 +261,14 @@
             <h2>🎯 Recent Activity</h2>
             <div class="activity-list" id="activityList">
                 <div class="no-activity">No activities yet. Start earning points! 🚀</div>
+            </div>
+        </section>
+
+        <!-- Spending History -->
+        <section class="spending-history">
+            <h2>🎁 Spending History</h2>
+            <div class="spending-list" id="spendingList">
+                <div class="no-spending">No rewards purchased yet. Save up and treat yourself! 🎉</div>
             </div>
         </section>
 

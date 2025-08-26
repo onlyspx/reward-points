@@ -20,8 +20,9 @@ class RewardPointsTracker {
             badges: {},
             activityCounts: {},
             dailyActivities: {}, // Track activities completed today
+            spendingHistory: [], // Track spending history
             settings: {
-                kidName: 'Vir',
+                kidName: 'My',
                 startingPoints: 0,
                 dailyLimit: 50
             }
@@ -46,6 +47,7 @@ class RewardPointsTracker {
         this.updateBadges();
         this.updateActivityButtons();
         this.updateRewardButtons();
+        this.updateSpendingList();
         console.log('App initialized successfully');
     }
 
@@ -267,7 +269,7 @@ class RewardPointsTracker {
         document.getElementById('todayPoints').textContent = todayPoints;
         
         // Update header with kid's name
-        const kidName = this.data.settings.kidName || 'Vir';
+        const kidName = this.data.settings.kidName || 'My';
         document.querySelector('.header h1').textContent = `🎉 ${kidName}'s Reward Points!`;
         document.title = `🎉 ${kidName}'s Reward Points!`;
         
@@ -462,12 +464,16 @@ class RewardPointsTracker {
         this.data.totalPoints = 0;
         this.data.dailyPoints = {};
         this.data.activities = [];
+        this.data.dailyActivities = {}; // Clear daily activities to fix checkmark bug
+        this.data.spendingHistory = []; // Clear spending history
         this.data.lastReset = new Date().toISOString();
         
         this.saveData();
         this.updateDisplay();
         this.updateProgressBars();
         this.updateChart();
+        this.updateActivityButtons(); // Update activity buttons to clear checkmarks
+        this.updateSpendingList(); // Update spending list
     }
 
     // Get today's date string
@@ -1082,7 +1088,7 @@ class RewardPointsTracker {
         const startingPointsInput = document.getElementById('startingPoints');
         const dailyLimitInput = document.getElementById('dailyLimit');
         
-        kidNameInput.value = this.data.settings.kidName || 'Vir';
+        kidNameInput.value = this.data.settings.kidName || 'My';
         startingPointsInput.value = this.data.settings.startingPoints || 0;
         dailyLimitInput.value = this.data.settings.dailyLimit || 50;
     }
@@ -1124,7 +1130,7 @@ class RewardPointsTracker {
         const dailyLimit = parseInt(document.getElementById('dailyLimit').value) || 50;
         
         // Update settings
-        this.data.settings.kidName = kidName || 'Vir';
+        this.data.settings.kidName = kidName || 'My';
         this.data.settings.startingPoints = startingPoints;
         this.data.settings.dailyLimit = dailyLimit;
         
@@ -1189,9 +1195,25 @@ class RewardPointsTracker {
             type: 'spending'
         });
 
+        // Add to spending history
+        if (!this.data.spendingHistory) {
+            this.data.spendingHistory = [];
+        }
+        this.data.spendingHistory.unshift({
+            reward: rewardName,
+            cost: cost,
+            timestamp: new Date().toISOString(),
+            date: this.getTodayString()
+        });
+
         // Keep only last 50 activities
         if (this.data.activities.length > 50) {
             this.data.activities = this.data.activities.slice(0, 50);
+        }
+
+        // Keep only last 20 spending entries
+        if (this.data.spendingHistory.length > 20) {
+            this.data.spendingHistory = this.data.spendingHistory.slice(0, 20);
         }
 
         // Save and update display
@@ -1201,6 +1223,7 @@ class RewardPointsTracker {
         this.updateChart();
         this.updateRewardButtons();
         this.updateActivityList();
+        this.updateSpendingList();
 
         // Show success message
         this.showRewardPurchasedMessage(rewardName, cost);
@@ -1407,6 +1430,39 @@ class RewardPointsTracker {
                 document.body.removeChild(notification);
             }, 500);
         }, 2000);
+    }
+
+    // Update spending list
+    updateSpendingList() {
+        const spendingList = document.getElementById('spendingList');
+        
+        if (!this.data.spendingHistory || this.data.spendingHistory.length === 0) {
+            spendingList.innerHTML = '<div class="no-spending">No rewards purchased yet. Save up and treat yourself! 🎉</div>';
+            return;
+        }
+        
+        spendingList.innerHTML = this.data.spendingHistory
+            .slice(0, 10) // Show only last 10 purchases
+            .map((purchase, index) => {
+                const time = new Date(purchase.timestamp).toLocaleTimeString([], { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                const date = new Date(purchase.timestamp).toLocaleDateString([], {
+                    month: 'short',
+                    day: 'numeric'
+                });
+                return `
+                    <div class="spending-item">
+                        <div class="spending-info">
+                            <div class="spending-reward">${purchase.reward}</div>
+                            <div class="spending-time">${date} at ${time}</div>
+                        </div>
+                        <div class="spending-cost">-${purchase.cost} pts</div>
+                    </div>
+                `;
+            })
+            .join('');
     }
 }
 

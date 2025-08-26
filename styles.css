@@ -644,6 +644,70 @@ body {
     padding: 20px;
 }
 
+/* Spending History */
+.spending-history {
+    background: linear-gradient(135deg, #98fb98 0%, #90ee90 100%);
+    border-radius: 25px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 15px 35px rgba(152, 251, 152, 0.3);
+    border: 3px solid #32cd32;
+}
+
+.spending-history h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.spending-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.spending-item {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.spending-item .spending-info {
+    flex: 1;
+}
+
+.spending-item .spending-reward {
+    font-weight: bold;
+    color: #333;
+}
+
+.spending-item .spending-time {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.spending-item .spending-cost {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.no-spending {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+}
+
 /* Bottom Buttons */
 .bottom-buttons {
     display: flex;
